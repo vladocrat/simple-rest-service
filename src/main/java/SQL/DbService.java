@@ -67,7 +67,6 @@ public class DbService implements CRUDRepository {
             e.printStackTrace();
         }
 
-        closeConnection();
         return result;
     }
 
@@ -93,7 +92,7 @@ public class DbService implements CRUDRepository {
             e.printStackTrace();
         }
 
-        closeConnection();
+
         return dao;
     }
 
@@ -142,7 +141,7 @@ public class DbService implements CRUDRepository {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        closeConnection();
+
         return true;
     }
 
@@ -152,7 +151,7 @@ public class DbService implements CRUDRepository {
         checkConnection();
 
         PersonDao person = findPersonById(id);
-        if(person == null) return false;
+        if(person.getFio().equals("") && person.getBirthDate() == null) return false;
 
         if(person.getId() == 0) return false;
 
@@ -160,7 +159,7 @@ public class DbService implements CRUDRepository {
         Statement statement = conn.createStatement();
         statement.executeUpdate(query);
 
-        closeConnection();
+
         return true;
     }
 
@@ -185,7 +184,6 @@ public class DbService implements CRUDRepository {
         Statement statement = conn.createStatement();
         statement.executeUpdate(query);
 
-        closeConnection();
         return true;
     }
 
