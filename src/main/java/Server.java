@@ -28,7 +28,7 @@ public class Server{
 
     public static HttpServer startServer(int port) throws IOException {
         server = HttpServer.create(new InetSocketAddress(port), 0);
-
+        int counter = 0;
         server.createContext("/api/save", (exchange -> {
             if(exchange.getRequestMethod().equals(POST.getValue())) {
                 try {
@@ -36,6 +36,8 @@ public class Server{
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
+            } else {
+                exchange.sendResponseHeaders(403, -1);
             }
         }));
 
@@ -50,6 +52,8 @@ public class Server{
         server.createContext("/api/get", (exchange -> {
             if(exchange.getRequestMethod().equals(GET.getValue())) {
                 getByIndex(exchange);
+            } else {
+                exchange.sendResponseHeaders(403, -1);
             }
         }));
 
@@ -60,6 +64,8 @@ public class Server{
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
+            } else {
+                exchange.sendResponseHeaders(403, -1);
             }
         }));
 
@@ -70,13 +76,18 @@ public class Server{
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
+            } else {
+                exchange.sendResponseHeaders(403, -1);
             }
         }));
 
 
         server.setExecutor(null);
         server.start();
-        System.out.println("server was successfully launched");
+        if(counter == 0) {
+            System.out.println("server was successfully launched");
+            counter++;
+        }
         return server;
     }
 
@@ -165,4 +176,15 @@ public class Server{
         output.write(response.getBytes(StandardCharsets.UTF_8));
         output.flush();
     }
+
+    public static void closeServer() {
+        try {
+            if (server != null) {
+                closeServer();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 }

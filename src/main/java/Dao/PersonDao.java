@@ -14,11 +14,6 @@ public class PersonDao {
     private String fio;
     private LocalDate birthDate;
 
-    public PersonDao(String fio, LocalDate birthDate) {
-        this.birthDate = birthDate;
-        this.fio = fio;
-    }
-
     public PersonDao(String surname, String name, String secondName, LocalDate date) {
         fio = surname + " " + name + " " + secondName;
         birthDate = date;

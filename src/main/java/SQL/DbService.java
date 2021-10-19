@@ -159,7 +159,6 @@ public class DbService implements CRUDRepository {
         Statement statement = conn.createStatement();
         statement.executeUpdate(query);
 
-
         return true;
     }
 
