@@ -170,10 +170,16 @@ public class DbService implements CRUDRepository {
 
         if(dao == null) return false;
 
+        Date sqlDate;
         String fio = getFio(params, dao);
-        Date sqlDate = getSqlDate(params, dao);
-        String date = sqlDate.toString();
 
+        if(params.get("date").equals("default")) {
+            sqlDate = Date.valueOf(dao.getBirthDate());
+        } else {
+            sqlDate = getSqlDate(params);
+        }
+
+        String date = sqlDate.toString();
         String query = "UPDATE PEOPLE" +
                 " SET" +
                 " fio = '" + fio + "'," +
@@ -214,18 +220,11 @@ public class DbService implements CRUDRepository {
         return fio;
     }
 
-    private Date getSqlDate(Map<String, String> params, PersonDao dao) {
+    private Date getSqlDate(Map<String, String> params) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         LocalDate dateFromMap = LocalDate.parse(params.get("date"), formatter);
-        String date = dateFromMap.toString();
 
-        Date newDate;
-        if("default".equals(date)) {
-            newDate = Date.valueOf(dao.getBirthDate());
-        } else {
-            newDate = Date.valueOf(dateFromMap);
-        }
-        return newDate;
+        return Date.valueOf(dateFromMap);
     }
 
 

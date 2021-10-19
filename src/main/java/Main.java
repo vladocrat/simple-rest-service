@@ -10,7 +10,7 @@ public class Main {
         try {
             int sleep = 1000000000;
             while(true) {
-                HttpServer server = Server.startServer(port);
+                Server.startServer(port);
                 Thread.sleep(sleep * 1000L);
                 Server.closeServer();
             }

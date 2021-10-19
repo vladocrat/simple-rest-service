@@ -58,7 +58,7 @@ public class Server{
         }));
 
         server.createContext("/api/delete", (exchange -> {
-            if(exchange.getRequestMethod().equals(GET.getValue())) {
+            if(exchange.getRequestMethod().equals(POST.getValue())) {
                 try {
                     delete(exchange);
                 } catch (SQLException e) {
@@ -143,7 +143,8 @@ public class Server{
         String query = exchange.getRequestURI().getQuery();
         Map<String, String> map = SearchUtils.queryToMap(query);
         if(db.update(map)) {
-            String response = "person with" + map.get("id") + " has been updated";
+            String response = "person with id = " + map.get("id") + " has been updated";
+            System.out.println(response);
             writeResponse(exchange, response);
         } else {
             exchange.sendResponseHeaders(400, -1);
