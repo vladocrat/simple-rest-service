@@ -64,11 +64,11 @@ if you see the message "server was successfully launched" you are good to go!
 
 The api has 5 endpoints
 
-* /api/get
-* /api/all
-* /api/save
-* /api/update
-* /api/delete
+* /api/get - GET
+* /api/all - GET
+* /api/save - POST
+* /api/update - POST
+* /api/delete - POST
 
 <h3>get</h3>
 syntax:
