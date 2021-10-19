@@ -16,7 +16,7 @@ This is a simple rest service using HTTPServer java class. SQL operations are al
   ```
 
 2. clone the reposiroty
-Go to the directory you want it to be cloned to, and use git clone command inse git bash
+Go to the directory you want it to be cloned to, and use git clone command inside git bash
 ```
 git clone https://github.com/vladocrat/simple-rest-service.git
 ```
