@@ -108,6 +108,7 @@ public class Server{
                     exchange.sendResponseHeaders(400, -1);
                 } else {
                     dtos.add(dao.convertFioAndCreatePerson());
+                    System.out.println("Person with id = " + dao.getId() + " has successfully been deleted");
                 }
             }
             writeResponse(exchange, dtos.toString());
@@ -178,8 +179,6 @@ public class Server{
             server.setExecutor(null);
             server.start();
         } catch (Exception e) {
-            closeServer();
-        } finally {
             closeServer();
         }
     }

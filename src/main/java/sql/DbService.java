@@ -2,11 +2,8 @@ package sql;
 
 import dto.PersonDto;
 import dao.PersonDao;
-import sql.CRUDRepository;
-import sql.DbConfig;
 import utils.YamlUtils;
 
-import java.io.IOException;
 import java.sql.*;
 import java.sql.Date;
 import java.time.LocalDate;
@@ -14,38 +11,41 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 
-public class
-DbService implements CRUDRepository {
+public class DbService implements CRUDRepository {
     private Connection conn = null;
+    private final DbConfig config = YamlUtils.getSqlConfig();
+    private final String url = config.getUrl();
+    private final String password = config.getPassword();
+    private final String username = config.getUsername();
 
     @Override
-    public void openConnection() throws IOException {
-        DbConfig config = YamlUtils.getSqlConfig();
-        String url = config.getUrl();
-        String password = config.getPassword();
-        String username = config.getUsername();
-
+    public void openConnection() {
         try {
             conn = DriverManager.getConnection(url, username, password);
             System.out.println("connection to db successful");
 
+            //TODO hardcoded table name, remove (prob should use env vars)
             if(tableExists(conn, "PEOPLE")) {
                 System.out.println("exists and connected");
             } else {
-                String query = "CREATE TABLE PEOPLE" +
+                throw new SQLException("there is no such database");
+                //TODO table shouldn't be created by this method, must only open connection.
+                //TODO Actually this method should only init connection, so check for db should prob be removed entirely
+              /*  String query = "CREATE TABLE PEOPLE" +
                         "(id INTEGER not NULL AUTO_INCREMENT, " +
                         " fio VARCHAR(255), " +
                         " birth_date DATE, " +
                         " PRIMARY KEY ( id ))";
                 Statement statement = conn.createStatement();
                 statement.executeUpdate(query);
+                statement.close();
                 if(tableExists(conn, "PEOPLE")) {
                     System.out.println("table has successfully been created and connected to");
                 } else {
                     System.out.println("ERROR::table wasn't created");
                 }
+            */
             }
-
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -69,18 +69,18 @@ DbService implements CRUDRepository {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
+        closeConnection();
         return result;
     }
 
     @Override
     public PersonDao findPersonById(int id)  {
-
         checkConnection();
         PersonDao dao = null;
-        try {
+
+        try(Statement statement = conn.createStatement()) {
             String query = "SELECT * FROM PEOPLE where id = " + id;
-            Statement statement = conn.createStatement();
+
             ResultSet resultSet = statement.executeQuery(query);
 
             String fio = "";
@@ -89,13 +89,13 @@ DbService implements CRUDRepository {
                  fio = resultSet.getString("fio");
                  birth_date = resultSet.getDate("birth_date").toLocalDate();
             }
-
              dao = new PersonDao(id, fio, birth_date);
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
-
+        closeConnection();
         return dao;
     }
 
@@ -128,6 +128,7 @@ DbService implements CRUDRepository {
             int affectedRows = statement.executeUpdate();
 
             if (affectedRows ==  0) {
+                closeConnection();
                 throw new SQLException("Creating user failed, no rows affected.");
             }
 
@@ -136,6 +137,7 @@ DbService implements CRUDRepository {
                     dao.setId(generatedKeys.getInt(1));
                 }
                 else {
+                    closeConnection();
                     throw new SQLException("Creating user failed, no ID obtained.");
                 }
             } catch (SQLException e) {
@@ -145,29 +147,35 @@ DbService implements CRUDRepository {
             e.printStackTrace();
         }
 
+        closeConnection();
         return true;
     }
 
 
     @Override
-    public boolean delete(int id) throws SQLException {
-        checkConnection();
-
+    //TODO doesn't work with ids correctly, when a person is removed id is not updated at all...
+    public boolean delete(int id){
         PersonDao person = findPersonById(id);
         if(person.getFio().equals("") && person.getBirthDate() == null) return false;
 
         if(person.getId() == 0) return false;
 
         String query = "DELETE FROM PEOPLE WHERE id=" + id;
-        Statement statement = conn.createStatement();
-        statement.executeUpdate(query);
 
+        checkConnection();
+        try(Statement statement = conn.createStatement()) {
+            statement.executeUpdate(query);
+        } catch (SQLException e) {
+            System.out.println("unable to execute delete statement");
+            closeConnection();
+            return false;
+        }
+        closeConnection();
         return true;
     }
 
     @Override
-    public boolean update(Map<String, String> params) throws SQLException {
-        checkConnection();
+    public boolean update(Map<String, String> params) {
         String id = params.get("id");
         PersonDao dao = findPersonById(Integer.parseInt(id));
 
@@ -189,9 +197,17 @@ DbService implements CRUDRepository {
                 " birth_date = DATE_FORMAT('" + date +"', '%y-%m-%d')" +
                 " WHERE id = " + id + ";";
         System.out.println(query);
-        Statement statement = conn.createStatement();
-        statement.executeUpdate(query);
 
+
+        try(Statement statement = conn.createStatement()) {
+            statement.executeUpdate(query);
+        } catch (SQLException e) {
+            closeConnection();
+            return false;
+        }
+
+
+        closeConnection();
         return true;
     }
 
@@ -223,6 +239,7 @@ DbService implements CRUDRepository {
         return fio;
     }
 
+
     private Date getSqlDate(Map<String, String> params) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         LocalDate dateFromMap = LocalDate.parse(params.get("date"), formatter);
@@ -238,19 +255,18 @@ DbService implements CRUDRepository {
     }
 
     private void checkConnection() {
-        if(conn == null) {
-            try {
-                openConnection();
-            } catch (IOException e) {
-                e.printStackTrace();
+        try {
+            if(conn == null || conn.isClosed()) {
+                    openConnection();
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
     public void closeConnection() {
         try {
             if(conn != null) {
-                System.out.println("closing connection to db...");
                 conn.close();
                 System.out.println("connection has successfully been closed");
             }
