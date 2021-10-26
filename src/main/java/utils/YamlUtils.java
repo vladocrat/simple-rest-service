@@ -1,6 +1,6 @@
-package Utils;
+package utils;
 
-import SQL.DbConfig;
+import sql.DbConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 

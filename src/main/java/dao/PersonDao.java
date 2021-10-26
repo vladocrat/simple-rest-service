@@ -1,6 +1,6 @@
-package Dao;
+package dao;
 
-import Dto.PersonDto;
+import dto.PersonDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 

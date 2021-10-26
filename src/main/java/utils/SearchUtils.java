@@ -1,6 +1,6 @@
-package Utils;
+package utils;
 
-import Dto.PersonDto;
+import dto.PersonDto;
 import com.sun.net.httpserver.HttpExchange;
 
 

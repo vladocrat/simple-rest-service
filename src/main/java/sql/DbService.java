@@ -1,8 +1,10 @@
-package SQL;
+package sql;
 
-import Dto.PersonDto;
-import Dao.PersonDao;
-import Utils.YamlUtils;
+import dto.PersonDto;
+import dao.PersonDao;
+import sql.CRUDRepository;
+import sql.DbConfig;
+import utils.YamlUtils;
 
 import java.io.IOException;
 import java.sql.*;
@@ -12,7 +14,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 
-public class DbService implements CRUDRepository {
+public class
+DbService implements CRUDRepository {
     private Connection conn = null;
 
     @Override

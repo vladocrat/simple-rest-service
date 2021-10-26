@@ -1,8 +1,8 @@
-import Dto.PersonDto;
-import Dao.PersonDao;
-import SQL.CRUDRepository;
-import SQL.DbService;
-import Utils.SearchUtils;
+import dto.PersonDto;
+import dao.PersonDao;
+import sql.CRUDRepository;
+import sql.DbService;
+import utils.SearchUtils;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
@@ -11,8 +11,6 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -21,14 +19,16 @@ import static methods.Methods.GET;
 import static methods.Methods.POST;
 
 public class Server{
-    public static HttpServer server;
-    public static CRUDRepository db = new DbService();
+    private HttpServer server;
+    private final CRUDRepository db = new DbService();
+    private final int port;
 
-    private Server() {}
+    public Server(int port) {
+        this.port = port;
+    }
 
-    public static HttpServer startServer(int port) throws IOException {
+    public HttpServer initContexts() throws IOException {
         server = HttpServer.create(new InetSocketAddress(port), 0);
-        int counter = 0;
         server.createContext("/api/save", (exchange -> {
             if(exchange.getRequestMethod().equals(POST.getValue())) {
                 try {
@@ -81,17 +81,10 @@ public class Server{
             }
         }));
 
-
-        server.setExecutor(null);
-        server.start();
-        if(counter == 0) {
-            System.out.println("server was successfully launched");
-            counter++;
-        }
         return server;
     }
 
-    private static void getByIndex(HttpExchange exchange) throws IOException {
+    private  void getByIndex(HttpExchange exchange) throws IOException {
         List<PersonDao> daos = getPeopleByIndices(exchange);
         if(!daos.isEmpty()) {
             List<PersonDto> dtos = new ArrayList<>();
@@ -106,7 +99,7 @@ public class Server{
         exchange.close();
     }
 
-    private static void delete(HttpExchange exchange) throws SQLException, IOException {
+    private void delete(HttpExchange exchange) throws SQLException, IOException {
         List<PersonDao> daos = getPeopleByIndices(exchange);
         if(!daos.isEmpty()) {
             List<PersonDto> dtos = new ArrayList<>();
@@ -125,7 +118,7 @@ public class Server{
     }
 
 
-    private static void save(HttpExchange exchange) throws IOException, SQLException {
+    private void save(HttpExchange exchange) throws IOException, SQLException {
         Map<String, String> queryMap = SearchUtils.queryToMap(exchange.getRequestURI().getQuery());
         PersonDto dto = SearchUtils.getPersonFromQuery(queryMap);
         if(dto == null) return;
@@ -139,7 +132,7 @@ public class Server{
            exchange.close();
     }
 
-    private static void update(HttpExchange exchange) throws SQLException, IOException {
+    private void update(HttpExchange exchange) throws SQLException, IOException {
         String query = exchange.getRequestURI().getQuery();
         Map<String, String> map = SearchUtils.queryToMap(query);
         if(db.update(map)) {
@@ -151,7 +144,7 @@ public class Server{
         }
     }
 
-    private static void findAll(HttpExchange exchange) throws IOException {
+    private void findAll(HttpExchange exchange) throws IOException {
         List<PersonDao> people = db.findAll();
         String response = people.toString();
 
@@ -161,7 +154,7 @@ public class Server{
     }
 
 
-    private static List<PersonDao> getPeopleByIndices(HttpExchange exchange) {
+    private List<PersonDao> getPeopleByIndices(HttpExchange exchange) {
         List<Integer> ids = SearchUtils.getIndicesFromURI(exchange);
         List<PersonDao> daos = new ArrayList<>();
         for(int id : ids) {
@@ -171,14 +164,28 @@ public class Server{
     }
 
 
-    private static void writeResponse(HttpExchange exchange, String response) throws IOException {
+    private void writeResponse(HttpExchange exchange, String response) throws IOException {
         exchange.sendResponseHeaders(200, response.length());
         OutputStream output = exchange.getResponseBody();
         output.write(response.getBytes(StandardCharsets.UTF_8));
         output.flush();
     }
 
-    public static void closeServer() {
+
+    public void startServer() {
+        try {
+            server = initContexts();
+            server.setExecutor(null);
+            server.start();
+        } catch (Exception e) {
+            closeServer();
+        } finally {
+            closeServer();
+        }
+    }
+
+
+    public void closeServer() {
         try {
             if (server != null) {
                 closeServer();

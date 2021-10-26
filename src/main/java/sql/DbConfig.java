@@ -1,4 +1,4 @@
-package SQL;
+package sql;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;

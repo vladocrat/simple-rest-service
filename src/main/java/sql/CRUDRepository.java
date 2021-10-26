@@ -1,7 +1,7 @@
-package SQL;
+package sql;
 
-import Dto.PersonDto;
-import Dao.PersonDao;
+import dto.PersonDto;
+import dao.PersonDao;
 
 import java.io.IOException;
 import java.sql.SQLException;
